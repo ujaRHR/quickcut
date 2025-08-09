@@ -2,27 +2,29 @@
   "name": "quickcut",
   "version": "1.0",
   "description": "An open-source URL shortener with auth, analytics & TTL",
-  "main": "index.ts",
+  "main": "app.ts",
   "type": "module",
   "scripts": {
-    "dev": "node --env-file=.env src/app.ts",
+    "dev": "node --env-file=.env --watch ./src/app.ts",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "packageManager": "pnpm@10.13.1",
   "dependencies": {
     "@koa/router": "^14.0.0",
     "jsonwebtoken": "^9.0.2",
     "koa": "^3.0.1",
     "koa-bodyparser": "^4.4.1",
-    "koa2-cors": "^2.0.6"
+    "koa2-cors": "^2.0.6",
+    "mongoose": "^8.17.0"
   },
   "devDependencies": {
     "@types/jsonwebtoken": "^9.0.10",
     "@types/koa": "^3.0.0",
-    "@types/koa-router": "^7.4.8",
+    "@types/koa-bodyparser": "^4.3.12",
+    "@types/koa__router": "^12.0.4",
     "@types/node": "^24.2.0",
     "ts-node-dev": "^2.0.0",
     "typescript": "^5.9.2"
