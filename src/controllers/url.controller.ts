@@ -16,7 +16,15 @@ url.createShortUrl = async (ctx: any) => {
     const { longUrl, customAlias, expiresAt } = ctx.request
       .body as BodyAttributes;
 
-    if (customAlias) {
+    const isAuth = Boolean(ctx.state.user?.id);
+
+    if (!isAuth && (customAlias || expiresAt)) {
+      ctx.status = 403;
+      ctx.body = { error: "Login required to set custom alias or expiry" };
+      return;
+    }
+
+    if (isAuth && customAlias) {
       if (customAlias.length >= 4 && customAlias.length <= 16) {
         const existing = await Url.findOne({
           $or: [{ shortCode: customAlias }, { customAlias }]
@@ -40,18 +48,22 @@ url.createShortUrl = async (ctx: any) => {
     const newUrl = await Url.create({
       shortCode: customAlias ? undefined : await generateShortCode(),
       longUrl: longUrl.trim(),
-      customAlias: customAlias ? customAlias.trim() : undefined,
-      userId: ctx.state.user?.id || undefined,
-      expiresAt: expiresAt || undefined,
+      customAlias: isAuth ? customAlias?.trim() : undefined,
+      userId: isAuth ? ctx.state.user.id : undefined,
+      expiresAt: isAuth ? expiresAt : undefined,
       isActive: true,
       clickCount: 0
     });
 
+    ctx.status = 201;
     ctx.body = {
       success: true,
       data: {
-        longUrl,
-        shortCode: newUrl.shortCode || newUrl.customAlias
+        longUrl: newUrl.longUrl,
+        shortCode: newUrl.shortCode || newUrl.customAlias,
+        shortUrl: `${process.env.BASE_URL}/api/urls/${
+          newUrl.shortCode || newUrl.customAlias
+        }`
       }
     };
   } catch (error: any) {
@@ -96,6 +108,27 @@ url.getLongUrl = async (ctx: any) => {
 
     ctx.status = 301;
     ctx.redirect(existingUrl.longUrl);
+  } catch (error: any) {
+    ctx.status = 500;
+    ctx.body = {
+      success: false,
+      message: "Something went wrong!",
+      reason: process.env.NODE_ENV === "development" ? error.message : undefined
+    };
+  }
+};
+
+url.getAllUrls = async (ctx: any) => {
+  try {
+    const urls = await Url.find({
+      userId: ctx.state.user.id
+    }).sort({ createdAt: -1 });
+
+    ctx.body = {
+      success: true,
+      message: "Urls fetched successfully.",
+      urls
+    };
   } catch (error: any) {
     ctx.status = 500;
     ctx.body = {
