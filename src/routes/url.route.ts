@@ -8,5 +8,6 @@ const urlRouter = new Router();
 urlRouter.post("/shorten", optionalAuth, url.createShortUrl);
 urlRouter.get("/all", requiredAuth, url.getAllUrls);
 urlRouter.get("/:shortcode", url.getLongUrl);
+urlRouter.delete("/:shortcode", requiredAuth, url.deleteUrl);
 
 export default urlRouter;
